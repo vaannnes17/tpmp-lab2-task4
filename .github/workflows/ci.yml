@@ -1,0 +1,56 @@
+name: C Build and Test
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Install dependencies
+      run: sudo apt-get update && sudo apt-get install -y build-essential
+      
+    - name: Create directories
+      run: mkdir -p data docs
+      
+    - name: Show directory structure
+      run: |
+        echo "=== Project structure ==="
+        ls -la
+        echo "=== Src directory ==="
+        ls -la src/
+      
+    - name: Build with Make
+      run: |
+        echo "=== Building project ==="
+        make clean
+        make
+        echo "=== Build complete ==="
+        ls -la program_create program_process
+      
+    - name: Test - Create data file
+      run: |
+        echo "=== Creating data file ==="
+        ./program_create
+        echo "=== Data file content ==="
+        cat data/pensioners.txt
+      
+    - name: Test - Process data
+      run: |
+        echo "=== Processing data ==="
+        ./program_process
+        echo "=== Result file content ==="
+        cat data/result.txt
+      
+    - name: Verify test results
+      run: |
+        echo "=== Verification ==="
+        if [ -f data/result.txt ]; then
+          echo "✓ Result file created"
+          LINES=$(wc -l < data/result.txt)
+          echo "Result file has $LINES lines"
+        else
+          echo "✗ Result file not found"
+          exit 1
+        fi
